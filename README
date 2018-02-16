@@ -1,0 +1,17 @@
+tic-tac-toe -- the classic game, implemented as a command-line program
+-----------
+
+This was a term project for COP2270 "C for Engineers", Spring 2013.
+
+Features:
+
+  * human-vs-human or human-vs-CPU games
+  * arbitrary board size
+  * stochastic AI!
+
+Installation and usage:
+
+Run 'make', then './tic-tac-toe' at the console.
+
+
+Design and code by Javier Lombillo <asymptotic.org>
