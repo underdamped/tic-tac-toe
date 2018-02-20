@@ -37,7 +37,6 @@ void show_board(struct game_board *b)
     }
 
     puts( "" );
-    return;
 }
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -51,12 +50,9 @@ void show_board(struct game_board *b)
  */
 void delete_board(struct game_board *b)
 {
-    int i;
+    // release the board storage
+    free( b->board[0] );
 
-    for ( i = 0; i < b->size; i++ )
-        free( b->board[i] );
-
+    // release the row-pointer storage
     free( b->board );
-
-    return;
 }

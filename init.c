@@ -19,42 +19,68 @@ extern int cpu_move(struct game_board *, struct player_object *);
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  * init_board()
  * --------------
- * function     : creates an MxM matrix suitable for a
+ * function     : creates an NxN matrix suitable for a
  *              : tic-tac-toe board
  *              :
  * parameters   : pointer to the game board object, an int
  *              : representing the desired size of the matrix
  *              :
  * returns      : 0 on success, -1 on failure
+ *
+ * notes        : we build the table dynamically as an array
+ *              : of "row-pointers", each of which points to
+ *              : the first column in its row. this schema lets
+ *              : the compiler know how the data is logically
+ *              : organized on the heap, sparing us from having
+ *              : to do ugly pointer arithmetic.
  */
 int init_board(struct game_board *b, int size)
 {
-    int i, j;
+    int i, j, total_board_size;
 
-    // build a 2D array dynamically
     b->size = size;
+
+    // allocate storage for the row-pointers
     b->board = malloc( b->size * sizeof(int*) );
 
-    if ( b->board == NULL )
+    if ( !b->board )
     {
-        puts( "[ERROR] Memory allocation error, aborting." );
+        puts( "[WARNING] Memory allocation error, aborting." );
         return -1;
     }
 
+    // next we allocate a contiguous block of storage for the board data,
+    // where the number of allocated bytes = rows * cols * sizeof(board element)
+    total_board_size = b->size * b->size * sizeof(**b->board);
+
+    b->board[0] = malloc( total_board_size );
+
+    if ( !b->board[0] )
+    {
+        puts( "[WARNING] Memory allocation error, aborting." );
+        return -1;
+    }
+
+    // the first row-pointer now points to the beginning address in the block,
+    // but the compiler doesn't yet know how the block is logically organized,
+    // so we associate each row-pointer with the address of the first column in
+    // its logical row.
     for ( i = 0; i < b->size; i++ )
     {
-        b->board[i] = malloc( b->size * sizeof(int*) );
+        // calculate the address offset of the first column in the ith row.
+        // the compiler already knows the underlying type of **b->board (an int),
+        // so no need to include sizeof(int) in the offset
+        int offset = b->size * i;
 
-        if ( b->board[i] == NULL )
-        {
-            puts( "[ERROR] Memory allocation error, aborting." );
-            return -1;
-        }
+        // set the ith row-pointer to the address of its first column
+        b->board[i] = b->board[0] + offset;
 
+        // start each table element with a "blank" character
         for ( j = 0; j < b->size; j++ )
             b->board[i][j] = '-';
     }
 
+    // clear the move counter
     b->moves = 0;
 
     return 0;
